@@ -1,0 +1,19 @@
+{
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^5.0.0-beta.2",
+    "mongoose": "^8.2.2",
+    "nodemon": "^3.1.0",
+    "razorpay": "^2.9.2"
+  },
+  "name": "paymentgeteway",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
