@@ -1,29 +1,39 @@
-const express=require('express');
-const app=express();
-const cors = require('cors');
+const express = require("express");
+const app = express();
+const cors = require("cors");
 
+// Enable CORS
 app.use(cors());
-require('dotenv').config();
-const Razorpay=require('razorpay');
 
+// Load environment variables
+require("dotenv").config();
+
+// Import Razorpay module
+const Razorpay = require("razorpay");
+
+// Middleware to parse JSON and URL-encoded bodies
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Initialize Razorpay instance
 module.exports.instance = new Razorpay({
-    key_id: process.env.RAZORPAY_API_KEY ,
-    key_secret: process.env.RAZORPAY_API_SECRET,
-  });
+  key_id: process.env.RAZORPAY_API_KEY,
+  key_secret: process.env.RAZORPAY_API_SECRET,
+});
 
-  const paymentRoute = require('./routes/paymentRoute');
-  app.use('/api',paymentRoute );
+// Import payment route
+const paymentRoute = require("./routes/paymentRoute");
 
-const PORT=process.env.PORT;
+// Define payment route
+app.use("/api", paymentRoute);
 
-app.get('api/getkey',(req,res)=>{
-    res.status(200).json({key:process.env.RAZORPAY_API_KEY})
-})
-app.listen(PORT,()=>{
-    console.log(`listening on ${PORT}`);
-})
+// Define endpoint to get Razorpay API key
+app.get("api/getkey", (req, res) => {
+  res.status(200).json({ key: process.env.RAZORPAY_API_KEY });
+});
 
-
+// Start the server
+const PORT = process.env.PORT || 3000; // Default port is 3000
+app.listen(PORT, () => {
+  console.log(`Server is listening on port ${PORT}`);
+});

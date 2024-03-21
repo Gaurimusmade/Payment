@@ -1,80 +1,99 @@
-<html >
-<head>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Razorpay Payment Integration</title>
+  </head>
+  <body>
+    <h1>Razorpay Payment Integration</h1>
 
-  <title>Razorpay Payment Integration</title>
-</head>
-<body>
-  <h1>Razorpay Payment Integration</h1>
+    <!-- Payment form -->
+    <div id="payment-form">
+      <label for="amount">Amount:</label>
+      <input type="number" id="amount" name="amount" required />
+      <button id="create-order-btn">Create Order</button>
+    </div>
 
-  <div id="payment-form">
-    <label for="amount">Amount:</label>
-    <input type="number" id="amount" name="amount" required>
-    <button id="create-order-btn">Create Order</button>
-  </div>
+    <!-- Display payment response -->
+    <div id="payment-response"></div>
 
-  <div id="payment-response"></div>
-  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <!-- Razorpay checkout script -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
-  <script>
-    
-    const createOrderBtn = document.getElementById('create-order-btn');
-    const paymentResponseDiv = document.getElementById('payment-response');
+    <!-- JavaScript code for handling payment flow -->
+    <script>
+      const createOrderBtn = document.getElementById("create-order-btn");
+      const paymentResponseDiv = document.getElementById("payment-response");
 
-    createOrderBtn.addEventListener('click', async () => {
-      const amount = document.getElementById('amount').value;
+      // Event listener for creating order
+      createOrderBtn.addEventListener("click", async () => {
+        const amount = document.getElementById("amount").value;
 
-      try {
-        const response = await fetch('http://localhost:5000/api/checkout/', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ amount })
-        });
+        try {
+          // Send request to create order
+          const response = await fetch("http://localhost:5000/api/checkout/", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ amount }),
+          });
 
-        const data = await response.json();
-        if (response.ok) {
-          paymentResponseDiv.textContent = JSON.stringify(data, null, 2);
-          if (data.order.id) {
-            const options = {
-              key: 'rzp_test_VNcmgF1nK97bYT',
-              amount: data.order.amount,
-              currency: 'INR',
-              order_id: data.order.id,
-              handler: async function(response) {
-                const verifyResponse = await fetch('http://localhost:5000/api/paymentVerification/', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json'
-                  },
-                  body: JSON.stringify({
-                    razorpay_payment_id: response.razorpay_payment_id,
-                    razorpay_order_id: response.razorpay_order_id,
-                    razorpay_signature:response.razorpay_signature
-                  })
-                });
+          // Parse response data
+          const data = await response.json();
 
-                const verifyData = await verifyResponse.json();
+          // If order creation is successful
+          if (response.ok) {
+            paymentResponseDiv.textContent = JSON.stringify(data, null, 2);
 
-                if (verifyResponse.ok) {
-                  alert('Payment successful!');
-                } else {
-                  alert('Payment failed!');
-                }
-              }
-            };
+            // Open Razorpay checkout if order is created
+            if (data.order.id) {
+              const options = {
+                key: "rzp_test_VNcmgF1nK97bYT",
+                amount: data.order.amount,
+                currency: "INR",
+                order_id: data.order.id,
+                // Handler function after payment completion
+                handler: async function (response) {
+                  const verifyResponse = await fetch(
+                    "http://localhost:5000/api/paymentVerification/",
+                    {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify({
+                        razorpay_payment_id: response.razorpay_payment_id,
+                        razorpay_order_id: response.razorpay_order_id,
+                        razorpay_signature: response.razorpay_signature,
+                      }),
+                    }
+                  );
 
-            const rzp = new Razorpay(options);
-            rzp.open();
+                  const verifyData = await verifyResponse.json();
+
+                  // Show success or failure message based on payment verification
+                  if (verifyResponse.ok) {
+                    alert("Payment successful!");
+                  } else {
+                    alert("Payment failed!");
+                  }
+                },
+              };
+
+              const rzp = new Razorpay(options);
+              rzp.open();
+            }
+          } else {
+            // Display error message if order creation fails
+            paymentResponseDiv.textContent = data.error;
           }
-        } else {
-          paymentResponseDiv.textContent = data.error;
+        } catch (error) {
+          console.error("Error creating order:", error);
+          paymentResponseDiv.textContent = "Failed to create order";
         }
-      } catch (error) {
-        console.error('Error creating order:', error);
-        paymentResponseDiv.textContent = 'Failed to create order';
-      }
-    });
-  </script>
-</body>
+      });
+    </script>
+  </body>
 </html>
